@@ -13,16 +13,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
 public class Main {
+    //sorted = Arrays.stream(sorted).filter(s -> !s.getName().split("-")[1].equalsIgnoreCase(" Trash.xlsx")).toArray(File[]::new);
 
     public static void main(String[] args) throws IOException {
-        String name = "LiveTester recording85 -Trash";
-        System.out.println(name.split("-")[1]);
+        final File folder = new File("F:\\NN\\");
+        File[] sorted = sortFiles(folder);
 
-
-        //final File folder = new File("F:\\NN\\");
-        //File[] sorted = sortFiles(folder);
-        //final File exported = new File("F:\\test.txt");
-        //listFilesForFolder(sorted, exported, 6);
+        final File exported = new File("F:\\test.txt");
+        listFilesForFolder(sorted, exported, 1);
     }
 
     public static void listFilesForFolder(final File[] folder, final File exported, int skipLine) throws IOException {
@@ -128,19 +126,21 @@ public class Main {
             private int extractNumber(String name) {
                 int i = 0;
                 try {
-                    String part = name.split("(?<=\\D)(?=\\d)")[1];
-                    //System.out.println(part[1]);
-                    String xx = part.split("[.]")[0];
-                    i = Integer.parseInt(xx);
+                    //NEED to check for index problem here !!!!!!!
+                    //"(?<=\\D)(?=\\d)"
+                    String part = name.split("(\\D+)")[1]; //This step can be reduced by using regex only without split method
+
+                    //String xx = part.split("[.]")[0];
+                    i = Integer.parseInt(part);
                 } catch(Exception e) {
                     i = 0; // if filename does not match the format
                     // then default to 0
                 }
+
                 return i;
             }
         });
         return xx;
-
     }
 
 }
