@@ -1,6 +1,9 @@
 package com.company;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import com.monitorjbl.xlsx.StreamingReader;
 import org.apache.poi.ss.usermodel.*;
@@ -12,13 +15,17 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        final File folder = new File("F:\\NN\\");
+        String name = "LiveTester recording85 -Trash";
+        System.out.println(name.split("-")[1]);
 
-        final File exported = new File("F:\\test.txt");
-        listFilesForFolder(folder, exported, 1);
+
+        //final File folder = new File("F:\\NN\\");
+        //File[] sorted = sortFiles(folder);
+        //final File exported = new File("F:\\test.txt");
+        //listFilesForFolder(sorted, exported, 6);
     }
 
-    public static void listFilesForFolder(final File folder, final File exported, int skipLine) throws IOException {
+    public static void listFilesForFolder(final File[] folder, final File exported, int skipLine) throws IOException {
         FileOutputStream fileOut = null;
         XSSFWorkbook xssfWorkbook = null;
         try {
@@ -29,7 +36,7 @@ public class Main {
             xssfWorkbook = new XSSFWorkbook();
             XSSFSheet createdSheet = xssfWorkbook.createSheet("text");
             //---> loop throw the files in the selected folder
-            for (final File fileEntry : folder.listFiles()) {
+            for (final File fileEntry : folder) {
                 //Get the file extension
                 String ext = fileEntry.getName().substring(fileEntry.getName().lastIndexOf('.') + 1);
                 System.out.println("-->> " + fileEntry.getName() + "-->>");
@@ -52,9 +59,14 @@ public class Main {
                 if (fileEntry.isDirectory()) {
                     continue;
                 } else if (ext.equals("xlsx")) {
+                    //Skip the head row
+                    Row row = rowIteratorx.next();
+                    //Skip the specified rows
+                    for(int j = 0; j < skipLine; j++)
+                    {
+                        row = rowIteratorx.next();
 
-                   Row row = rowIteratorx.next();
-                    row = rowIteratorx.next();
+                    }
                     Iterator<Cell> cellIterator = row.cellIterator();
 
                     while (cellIterator.hasNext()) {
@@ -102,6 +114,35 @@ public class Main {
             xssfWorkbook.close();
         }
     }
+
+    public static File[] sortFiles(File file)
+    {
+        File[] xx = file.listFiles();
+        Arrays.sort(xx, new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                int n1 = extractNumber(o1.getName());
+                int n2 = extractNumber(o2.getName());
+                return n1 - n2;
+            }
+            private int extractNumber(String name) {
+                int i = 0;
+                try {
+                    String part = name.split("(?<=\\D)(?=\\d)")[1];
+                    //System.out.println(part[1]);
+                    String xx = part.split("[.]")[0];
+                    i = Integer.parseInt(xx);
+                } catch(Exception e) {
+                    i = 0; // if filename does not match the format
+                    // then default to 0
+                }
+                return i;
+            }
+        });
+        return xx;
+
+    }
+
 }
 
 
