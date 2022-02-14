@@ -1,12 +1,7 @@
 package com.company;
 
 import java.io.*;
-
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
-
 import com.monitorjbl.xlsx.StreamingReader;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -21,8 +16,6 @@ public class Main {
 
         final File exported = new File("F:\\test.txt");
         listFilesForFolder(folder, exported, 1);
-
-
     }
 
     public static void listFilesForFolder(final File folder, final File exported, int skipLine) throws IOException {
@@ -31,63 +24,74 @@ public class Main {
         try {
             int incr = 0;
             int col = 0;
+
+            //--->Create the sheet to export the data
             xssfWorkbook = new XSSFWorkbook();
             XSSFSheet createdSheet = xssfWorkbook.createSheet("text");
-
+            //---> loop throw the files in the selected folder
             for (final File fileEntry : folder.listFiles()) {
-
+                //Get the file extension
                 String ext = fileEntry.getName().substring(fileEntry.getName().lastIndexOf('.') + 1);
-                StringBuilder stringBuilder = new StringBuilder("");
                 System.out.println("-->> " + fileEntry.getName() + "-->>");
-                 fileOut = new FileOutputStream("F:\\test.xlsx");
+                //---> Create the file to export the data
+                fileOut = new FileOutputStream("F:\\test.xlsx");
+                //---> Create the row to insert the cells in
                 XSSFRow rowCreated = createdSheet.createRow((short)incr);
-
+                //Read the file selected by the loop
                 InputStream file = new FileInputStream(fileEntry.getPath());
+                // The following block of code is by the (Excel Streaming Reader)
+                // https://github.com/monitorjbl/excel-streaming-reader
                 Workbook workbook = StreamingReader.builder()
                         .rowCacheSize(10)    // number of rows to keep in memory (defaults to 10)
                         .bufferSize(4096)     // buffer size to use when reading InputStream to file (defaults to 1024)
                         .open(file);            // InputStream or File for XLSX file (required)
+
                 Sheet sheetx = workbook.getSheetAt(0);
-                //--->Create the sheet here
-
-
                 Iterator<Row> rowIteratorx = sheetx.iterator();
+
                 if (fileEntry.isDirectory()) {
                     continue;
                 } else if (ext.equals("xlsx")) {
+
                    Row row = rowIteratorx.next();
                     row = rowIteratorx.next();
-                    row = rowIteratorx.next();
-
                     Iterator<Cell> cellIterator = row.cellIterator();
-                    while (cellIterator.hasNext()) {
 
+                    while (cellIterator.hasNext()) {
                         Cell cell = cellIterator.next();
                         switch (cell.getCellType()) {
                             case STRING:
                                 rowCreated.createCell(col).setCellValue(cell.getStringCellValue());
                                 col++;
-                                //System.out.print(cell.getStringCellValue() + "\t");
-                                //stringBuilder.append(cell.getStringCellValue() + "\t");
                                 break;
                             case NUMERIC:
-                                //System.out.print(cell.getNumericCellValue() + "\t");
-                                //stringBuilder.append(cell.getNumericCellValue() + "\t");
                                 rowCreated.createCell(col).setCellValue(cell.getNumericCellValue());
+                                col++;
+                                break;
+                            case BLANK:
+                                rowCreated.createCell(col).setCellValue(cell.getStringCellValue());
+                                col++;
+                                break;
+                            case BOOLEAN:
+                                rowCreated.createCell(col).setCellValue(cell.getBooleanCellValue());
+                                col++;
+                                break;
+                            case ERROR:
+                                rowCreated.createCell(col).setCellValue(cell.getErrorCellValue());
+                                col++;
+                                break;
+                            case FORMULA:
+                                rowCreated.createCell(col).setCellValue(cell.getCellFormula());
                                 col++;
                                 break;
                             default:
                         }
                     }
                     xssfWorkbook.write(fileOut);
-
                     incr++;
                     col = 0;
-                    //System.out.println( stringBuilder);
-                    //System.out.println("");
-                    workbook.close();
-                    file.close();
-
+                    workbook.close();//Close the current worksheet
+                    file.close();//Close the current file
                 }
             }
 
@@ -96,12 +100,8 @@ public class Main {
         }finally {
             fileOut.close();
             xssfWorkbook.close();
-
         }
     }
-
-
-
 }
 
 
