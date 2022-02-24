@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.monitorjbl.xlsx.StreamingReader;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -17,8 +20,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         final File folder = new File("F:\\NN\\");
-        File[] sorted = sortFiles(folder);
-
+        File[] ValidFiles = skipFile(folder);
+        File[] sorted = sortFiles(ValidFiles);
         final File exported = new File("F:\\test.txt");
         listFilesForFolder(sorted, exported, 1);
     }
@@ -113,10 +116,10 @@ public class Main {
         }
     }
 
-    public static File[] sortFiles(File file)
+    public static File[] sortFiles(File[] file)
     {
-        File[] xx = file.listFiles();
-        Arrays.sort(xx, new Comparator<File>() {
+
+        Arrays.sort(file, new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
                 int n1 = extractNumber(o1.getName());
@@ -140,8 +143,27 @@ public class Main {
                 return i;
             }
         });
-        return xx;
+        return file;
     }
+    public static File[] skipFile(File file)
+    {
+        File files[] = file.listFiles();
+        ArrayList<File> temp = new ArrayList<>();
+        Pattern pattern = Pattern.compile("[-]\\s*([T|trash]*)", Pattern.CASE_INSENSITIVE);
+
+        for(int i = 0; i< files.length; i++)
+        {
+            Matcher matcher = pattern.matcher(files[i].getName());
+            boolean matchFound = matcher.find();
+            if(matchFound) {
+                continue;
+            } else {
+                temp.add(files[i]);
+            }
+        }
+        return temp.toArray(File[]::new);
+    }
+
 
 }
 
